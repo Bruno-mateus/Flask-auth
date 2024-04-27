@@ -2,6 +2,7 @@ from flask import Flask,request, jsonify
 from models.User import Users
 from database import db
 from flask_login import LoginManager,login_user,current_user,logout_user,login_required
+from bcrypt import hashpw, gensalt, checkpw
 
 app = Flask(__name__)
 
@@ -37,7 +38,7 @@ def login():
     password = data.get("password")
     if username and password:
         user = Users.query.filter_by(username = username).first()
-        if user and user.password == password:
+        if user and checkpw(str.encode(password),str.encode(user.password)):
             # passa o usuario para o login
             login_user(user)
             # verificar se p usuario esta logado
@@ -55,7 +56,9 @@ def create():
         userAlreadyExists = Users.query.filter_by(username=username).first()
         if(userAlreadyExists): 
             return jsonify({"message":"Este username ja pertence a um usuario cadastrado"})
-        user = Users(username=username, password=password,role='user')
+        hashed_password= hashpw(str.encode(password),gensalt(12))
+
+        user = Users(username=username, password=hashed_password,role='user')
         
         db.session.add(user)
         db.session.commit()
@@ -80,7 +83,8 @@ def update_password(id):
     user = Users.query.filter_by(id=id).first()
     if(user):
         if(password):
-            user.password = password
+            hashed_password = hashpw(str.encode(password),gensalt(12))
+            user.password = hashed_password
             db.session.commit()
             return jsonify({"message":f"A senha do usuario {user.username} foi atualizada com sucesso"})
         return jsonify({"message":"É necessario informar uma senha nova para continuar"}), 400
