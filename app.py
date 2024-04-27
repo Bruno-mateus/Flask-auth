@@ -55,7 +55,7 @@ def create():
         userAlreadyExists = Users.query.filter_by(username=username).first()
         if(userAlreadyExists): 
             return jsonify({"message":"Este username ja pertence a um usuario cadastrado"})
-        user = Users(username=username, password=password)
+        user = Users(username=username, password=password,role='user')
         
         db.session.add(user)
         db.session.commit()
@@ -73,6 +73,8 @@ def read_profile(id):
 @app.route("/update-password/<int:id>", methods=['PUT'])
 @login_required
 def update_password(id):
+    if current_user.id!=id and current_user.role == 'user':
+        return jsonify({'message':'Operação não permitida'}), 403
     data = request.json
     password= data.get('password')
     user = Users.query.filter_by(id=id).first()
@@ -87,7 +89,9 @@ def update_password(id):
 @app.route('/delete-user/<int:id>',methods=['DELETE'])
 @login_required
 def delete_user(id):
-    if(current_user.id == id):
+    if current_user.role != 'admin':
+        return jsonify({'message':'Não permitido'}), 403
+    if(current_user.id == id) :
         return jsonify({"message":"Não permitido"}), 403
     user = Users.query.filter_by(id=id).first()
     if(user):
