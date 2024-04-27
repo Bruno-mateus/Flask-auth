@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 #configs iniciais para o db
 app.config['SECRET_KEY'] = "1234"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql:///root:admin123@127.0.0.1:3306/flask-crud'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin123@127.0.0.1:3306/flask_db'
 
 login_manager = LoginManager()
 ## inicia db
@@ -15,6 +15,8 @@ db.init_app(app)
 ## inicia o metodo de login
 login_manager.init_app(app)
 login_manager.login_view = 'login' # rota para o login 
+
+
 
 #busca o usuario para a autenticação
 @login_manager.user_loader
